@@ -28,8 +28,8 @@ MODEL_STD = (0.229, 0.224, 0.225)
 
 TRAIN_FOLDS = f'{OUTPUT}/train_folds.csv'
 
-TRAIN_BATCH_SIZE = 32
-VAL_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 2
+VAL_BATCH_SIZE = 2
 
 
 logs_path = 'lightning_logs'

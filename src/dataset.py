@@ -18,7 +18,7 @@ class WheatDataset:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
-            ], bbox_params={'format':'coco', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']})
+            ], bbox_params={'format':'pascal_voc', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']})
         else:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
@@ -42,7 +42,7 @@ class WheatDataset:
                     A.NoOp()
                 ]),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
-            ], bbox_params={'format':'coco', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
+            ], bbox_params={'format':'pascal_voc', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
     def __len__(self):
         return len(self.image_ids)
@@ -53,8 +53,8 @@ class WheatDataset:
         bboxes_id = self.df[self.df.image_id == img_name].index.tolist()
         # print(len(bboxes))
         bboxes = self.df.loc[bboxes_id, ['x','y','w','h']].values
-        # bboxes[:, 2] = bboxes[:, 0] + bboxes[:, 2]
-        # bboxes[:, 3] = bboxes[:, 1] + bboxes[:, 3]
+        bboxes[:, 2] = bboxes[:, 0] + bboxes[:, 2]
+        bboxes[:, 3] = bboxes[:, 1] + bboxes[:, 3]
 
         num_bboxes = len(bboxes)
         cat_id = [1.0]*num_bboxes
@@ -74,20 +74,33 @@ class WheatDataset:
 
         # augmented = aug(**sample)
 
-        augmented = self.aug(image=image, bboxes=bboxes, labels=cat_id)
-
-        image = augmented['image'].copy()
-        bboxes = augmented['bboxes'].copy()
-
-        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
-        
+        # augmented = self.aug(image=image, bboxes=bboxes, labels=cat_id)
 
         bboxes = torch.tensor(bboxes, dtype=torch.float)
         labels = torch.ones((num_bboxes,), dtype=torch.int64)
 
+        area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
+        area = torch.as_tensor(area, dtype=torch.float32)
+
+        iscrowd = torch.zeros((num_bboxes,), dtype=torch.int64)
+
         target = {}
-        target['bboxes'] = bboxes
+        target['boxes'] = bboxes
         target['labels'] = labels
+        target['image_id'] = torch.tensor([item])
+        target['area'] = area
+        target['iscrowd'] = iscrowd
+
+        sample = {
+                'image': image,
+                'bboxes': target['boxes'],
+                'labels': labels
+            }
+
+        sample = self.aug(**sample)
+        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
+
+        target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
 
         return {
             'image': torch.tensor(image, dtype=torch.float),
