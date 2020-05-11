@@ -36,7 +36,7 @@ data = dataset.WheatDataset(folds=[1,2])
 
 print(len(data))
 
-idx = 22
+idx = 122
 
 img = data[idx]['image'].numpy()
 bboxes = data[idx]['target']['bboxes'].numpy()

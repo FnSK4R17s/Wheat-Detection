@@ -67,11 +67,11 @@ class WheatModel(pl.LightningModule):
 
     def train_dataloader(self):
         # REQUIRED
-        return DataLoader(CarvanaDataset(folds=self.train_folds), shuffle=True, batch_size=config.TRAIN_BATCH_SIZE)
+        return DataLoader(WheatDataset(folds=self.train_folds), shuffle=True, batch_size=config.TRAIN_BATCH_SIZE)
 
     def val_dataloader(self):
         # OPTIONAL
-        return DataLoader(CarvanaDataset(folds=self.val_folds), batch_size=config.VAL_BATCH_SIZE)
+        return DataLoader(WheatDataset(folds=self.val_folds), batch_size=config.VAL_BATCH_SIZE)
 
     # def test_dataloader(self):
     #     # OPTIONAL
