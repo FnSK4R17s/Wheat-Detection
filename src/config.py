@@ -11,6 +11,9 @@ INPUT_SHAPE = (CHANNELS, CROP_SIZE, CROP_SIZE)
 # MODEL_NAME = 'smp_unet_resnet34'
 
 
+min_area = 0.0
+min_visibility = 0.0
+
 INPUT = 'input'
 OUTPUT = 'output'
 

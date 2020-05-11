@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 import model_dispatcher
 import config
-from dataset import CarvanaDataset
+from dataset import WheatDataset
 from dice_loss import IoULoss
 
 import torch
@@ -10,9 +10,9 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 
 
-class CarvanaModel(pl.LightningModule):
+class WheatModel(pl.LightningModule):
     def __init__(self, train_folds, val_folds):
-        super(CarvanaModel, self).__init__()
+        super(WheatModel, self).__init__()
         # import model from model dispatcher
         self.model = model_dispatcher.MODELS[config.MODEL_NAME]
         self.train_folds = train_folds
@@ -26,7 +26,7 @@ class CarvanaModel(pl.LightningModule):
         # REQUIRED
 
         x = batch['image']
-        y = batch['mask']
+        y = batch['target']
         # print(batch)
         y_hat = self(x)
         loss = IoULoss()(y_hat, y)
@@ -36,7 +36,7 @@ class CarvanaModel(pl.LightningModule):
     def validation_step(self, batch, batch_nb):
         # OPTIONAL
         x = batch['image']
-        y = batch['mask']
+        y = batch['target']
         y_hat = self(x)
         return {'val_loss': IoULoss()(y_hat, y)}
 

@@ -6,9 +6,33 @@ from sklearn.model_selection import KFold
 
 import glob
 
+import numpy as np
+import re
+
+from tqdm import tqdm
+
 
 df = pd.read_csv(config.TRAIN_CSV)
 df.loc[:,'kfold'] = -1
+
+df['x'] = -1
+df['y'] = -1
+df['w'] = -1
+df['h'] = -1
+
+def expand_bbox(x):
+    r = np.array(re.findall("([0-9]+[.]?[0-9]*)", x))
+    if len(r) == 0:
+        r = [-1, -1, -1, -1]
+    return r
+
+df[['x', 'y', 'w', 'h']] = np.stack(df['bbox'].apply(lambda x: expand_bbox(x)))
+df.drop(columns=['bbox'], inplace=True)
+df['x'] = df['x'].astype(np.float)
+df['y'] = df['y'].astype(np.float)
+df['w'] = df['w'].astype(np.float)
+df['h'] = df['h'].astype(np.float)
+
 
 files = glob.glob(f'{config.TRAIN_PATH}\*.jpg')
 
@@ -30,7 +54,7 @@ folds = kf.split(files)
 for fold, (x, y) in enumerate(folds):
     # print(len(y), fold)
     # print(files.iloc[y])
-    for file in files.iloc[y].values:
+    for file in tqdm(files.iloc[y].values):
         # print(file)
         z = names[names  == file].index.tolist()
         df.loc[z, 'kfold'] = fold
