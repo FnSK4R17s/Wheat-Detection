@@ -8,7 +8,7 @@ LR = 0.001
 
 INPUT_SHAPE = (CHANNELS, CROP_SIZE, CROP_SIZE)
 
-# MODEL_NAME = 'smp_unet_resnet34'
+MODEL_NAME = 'fasterRCNNresnet34'
 
 
 min_area = 0.0

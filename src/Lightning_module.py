@@ -28,8 +28,7 @@ class WheatModel(pl.LightningModule):
         x = batch['image']
         y = batch['target']
         # print(batch)
-        y_hat = self(x)
-        loss = IoULoss()(y_hat, y)
+        loss = self(x,y)
         tensorboard_logs = {'train_loss': loss}
         return {'loss': loss, 'log': tensorboard_logs}
 
@@ -38,7 +37,7 @@ class WheatModel(pl.LightningModule):
         x = batch['image']
         y = batch['target']
         y_hat = self(x)
-        return {'val_loss': IoULoss()(y_hat, y)}
+        return {'val_loss': self(x,y)}
 
     def validation_epoch_end(self, outputs):
         # OPTIONAL
