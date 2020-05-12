@@ -7,6 +7,8 @@ import torch
 
 import config
 
+from albumentations.pytorch import ToTensorV2
+
 class WheatDataset:
     def __init__(self, folds):
         df = pd.read_csv(config.TRAIN_FOLDS)
@@ -17,7 +19,8 @@ class WheatDataset:
         if len(folds) == 1:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
-                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
+                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
+                ToTensorV2(p=1.0)
             ], bbox_params={'format':'pascal_voc', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']})
         else:
             self.aug = A.Compose([
@@ -41,7 +44,8 @@ class WheatDataset:
                     A.Blur(),
                     A.NoOp()
                 ]),
-                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
+                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
+                ToTensorV2(p=1.0)
             ], bbox_params={'format':'pascal_voc', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
     def __len__(self):
@@ -59,22 +63,7 @@ class WheatDataset:
         num_bboxes = len(bboxes)
         cat_id = [1.0]*num_bboxes
 
-        # print(bboxes)
-        # print(cat_id)
-
-        # image': image, 'bboxes': bboxes
-        # sample = {
-        #         'image': image,
-        #         'bboxes': bboxes,
-        #         'labels': cat_id
-        #     }
-
-
         category_id_to_name = {1: 'wheat'}
-
-        # augmented = aug(**sample)
-
-        # augmented = self.aug(image=image, bboxes=bboxes, labels=cat_id)
 
         bboxes = torch.tensor(bboxes, dtype=torch.float)
         labels = torch.ones((num_bboxes,), dtype=torch.int64)
@@ -98,14 +87,12 @@ class WheatDataset:
             }
 
         sample = self.aug(**sample)
-        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
 
-        target['boxes'] = torch.stack(tuple(map(torch.tensor, zip(*sample['bboxes'])))).permute(1, 0)
+        image = sample['image']
 
-        return {
-            'image': torch.tensor(image, dtype=torch.float),
-            'target': target
-        }
+        target['boxes'] = torch.as_tensor(sample['bboxes'], dtype=torch.float32)
+
+        return image, target
 
 
 

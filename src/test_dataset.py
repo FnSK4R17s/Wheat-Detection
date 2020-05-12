@@ -11,8 +11,8 @@ TEXT_COLOR = (255, 255, 255)
 
 def visualize_bbox(img, bbox, class_id, class_idx_to_name, color=BOX_COLOR, thickness=2):
     x_min, y_min, w, h = bbox
-    # x_min, x_max, y_min, y_max = int(x_min), int(w), int(y_min), int(h)
-    x_min, x_max, y_min, y_max = int(x_min), int(x_min + w), int(y_min), int(y_min + h)
+    x_min, x_max, y_min, y_max = int(x_min), int(w), int(y_min), int(h)
+    # x_min, x_max, y_min, y_max = int(x_min), int(x_min + w), int(y_min), int(y_min + h)
     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
     class_name = class_idx_to_name[class_id]
     ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)    
@@ -39,7 +39,7 @@ print(len(data))
 idx = 122
 
 img = data[idx]['image'].numpy()
-bboxes = data[idx]['target']['bboxes'].numpy()
+bboxes = data[idx]['target']['boxes'].numpy()
 labels = data[idx]['target']['labels'].numpy()
 
 print(img.shape)

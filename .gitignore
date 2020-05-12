@@ -135,3 +135,6 @@ output/
 
 .vscode/
 lightning_logs/
+
+logs/
+saved_models/
