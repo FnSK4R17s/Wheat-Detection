@@ -8,8 +8,8 @@ def train_iterative(train_folds,  valid_folds):
     model = model_dispenser()
     lit_model = LitWheat(train_folds,  valid_folds, model=model)
 
-    early_stopping = pl.callbacks.EarlyStopping(mode=max, monitor='metric', patience=50)
-    model_checkpoint = pl.callbacks.ModelCheckpoint(filepath='saved_models/', monitor='metric', save_top_k=1)
+    early_stopping = pl.callbacks.EarlyStopping(mode=max, monitor='main_score', patience=50)
+    model_checkpoint = pl.callbacks.ModelCheckpoint(filepath='saved_models/', monitor='main_score', save_top_k=1)
 
     tb_logger = TensorBoardLogger(save_dir='logs/')
 
@@ -23,7 +23,7 @@ def train_iterative(train_folds,  valid_folds):
         gradient_clip_val=0.5,
         debug=False,
         lr=0.0001,
-        metric='metric',
+        metric='main_score',
         seed=666
     )
 

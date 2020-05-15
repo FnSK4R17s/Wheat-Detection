@@ -66,16 +66,16 @@ class LitWheat(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         
-        metric = 0
+        metric = []
 
-        print(outputs)
-        for i, o in enumerate(outputs):
-            metric[i] += o['val_avg']
+        # print(outputs)
+        for o in outputs:
+            metric.append(o['val_avg'])
         
         metric = np.mean(metric)
 
         tensorboard_logs = {'main_score': metric}
-        return {'val_loss': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
+        return {'main_score': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
     def collate_fn(self, batch):
         return tuple(zip(*batch))
