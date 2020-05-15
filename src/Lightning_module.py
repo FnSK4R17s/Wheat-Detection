@@ -16,19 +16,19 @@ class LitWheat(pl.LightningModule):
         return self.model(x)
 
     def train_dataloader(self):
-        train_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.train_folds),
+        self.train_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.train_folds),
                                                    batch_size=config.TRAIN_BATCH_SIZE,
                                                    shuffle=True,
                                                    collate_fn=self.collate_fn)
-        return train_loader
+        return self.train_loader
 
     def val_dataloader(self):
-        valid_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.valid_folds),
+        self.valid_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.valid_folds),
                                                    batch_size=config.VAL_BATCH_SIZE,
                                                    shuffle=False,
                                                    collate_fn=self.collate_fn)
 
-        return valid_loader
+        return self.valid_loader
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
@@ -48,22 +48,20 @@ class LitWheat(pl.LightningModule):
         return {'loss': losses, 'log': loss_dict, 'progress_bar': loss_dict}
 
     def validation_step(self, batch, batch_idx):
+        
         images, targets = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
-
-        outputs = self.model(images)
-
-        # print(outputs)
-        bboxes = [o['boxes'] for o in outputs]
         # print(targets)
-        target_boxes = [o['boxes'] for o in targets]
-        # print(bboxes[0])
-        # print(target_boxes[0])
-        # losses = sum(loss for loss in outputs.values())
-        val = {'val_loss': outputs, 'log': outputs, 'progress_bar': outputs}
-        return {}
+        outputs = self.model(images)
+        # print(outputs)
+        res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+
+        return res
 
     def validation_epoch_end(self, outputs):
+        
+        print(len(outputs))
+
         metric = 0
         tensorboard_logs = {'main_score': metric}
         return {'val_loss': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
