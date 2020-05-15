@@ -21,7 +21,7 @@ class WheatDataset:
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
                 ToTensorV2(p=1.0)
-            ], bbox_params={'format':'coco', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']})
+            ], bbox_params={'format':'pascal_voc', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']})
         else:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
@@ -46,7 +46,7 @@ class WheatDataset:
                 ]),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
                 ToTensorV2(p=1.0)
-            ], bbox_params={'format':'coco', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
+            ], bbox_params={'format':'pascal_voc', 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
     def __len__(self):
         return len(self.image_ids)
@@ -57,8 +57,8 @@ class WheatDataset:
         bboxes_id = self.df[self.df.image_id == img_name].index.tolist()
         # print(len(bboxes))
         bboxes = self.df.loc[bboxes_id, ['x','y','w','h']].values
-        # bboxes[:, 2] = bboxes[:, 0] + bboxes[:, 2]
-        # bboxes[:, 3] = bboxes[:, 1] + bboxes[:, 3]
+        bboxes[:, 2] = bboxes[:, 0] + bboxes[:, 2]
+        bboxes[:, 3] = bboxes[:, 1] + bboxes[:, 3]
 
         num_bboxes = len(bboxes)
         cat_id = [1.0]*num_bboxes

@@ -3,6 +3,8 @@ import torch
 from dataset import WheatDataset
 import config
 
+import numpy as np
+
 class LitWheat(pl.LightningModule):
     
     def __init__(self, train_folds,  valid_folds, model = None):
@@ -54,20 +56,53 @@ class LitWheat(pl.LightningModule):
         # print(targets)
         outputs = self.model(images)
         # print(outputs)
-        res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        # res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
 
-        return res
+        # print(res)
+
+        scores = self.bboxtoIoU(outputs, targets)
+        # print(scores)
+        return {'val_IoU': scores, 'val_avg': np.mean(scores)}
 
     def validation_epoch_end(self, outputs):
         
-        print(len(outputs))
-
         metric = 0
+
+        print(outputs)
+        for i, o in enumerate(outputs):
+            metric[i] += o['val_avg']
+        
+        metric = np.mean(metric)
+
         tensorboard_logs = {'main_score': metric}
         return {'val_loss': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
     def collate_fn(self, batch):
         return tuple(zip(*batch))
 
-    def bboxtoIoU(self, boxes, targets):
-        pass
+    def bboxtoIoU(self, results, targets):
+        IoU = []
+        for i, (res, gt) in enumerate(zip(results, targets)):
+            b_res = res['boxes'].cpu().detach().numpy()
+            b_gt = gt['boxes'].cpu().detach().numpy()
+
+            score = self.run(b_res, b_gt)
+            # print(score.shape, b_res.shape, b_gt.shape)
+            # IoU.append(score)
+            mean = np.mean(np.max(score, axis=0))
+            # print(mean)
+            IoU.append(mean)
+        return IoU
+            
+    def run(self, bboxes1, bboxes2):
+        x11, y11, x12, y12 = np.split(bboxes1, 4, axis=1)
+        x21, y21, x22, y22 = np.split(bboxes2, 4, axis=1)
+        xA = np.maximum(x11, np.transpose(x21))
+        yA = np.maximum(y11, np.transpose(y21))
+        xB = np.minimum(x12, np.transpose(x22))
+        yB = np.minimum(y12, np.transpose(y22))
+        interArea = np.maximum((xB - xA + 1), 0) * np.maximum((yB - yA + 1), 0)
+        boxAArea = (x12 - x11 + 1) * (y12 - y11 + 1)
+        boxBArea = (x22 - x21 + 1) * (y22 - y21 + 1)
+        iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea + 1e-2)
+        return iou
