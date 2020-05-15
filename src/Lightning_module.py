@@ -34,7 +34,7 @@ class LitWheat(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=15)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='max', patience=15)
 
         return [optimizer], [scheduler]
 
@@ -74,7 +74,7 @@ class LitWheat(pl.LightningModule):
         
         metric = np.mean(metric)
 
-        tensorboard_logs = {'main_score': metric}
+        tensorboard_logs = {'main_score': metric, 'val_loss': metric}
         return {'main_score': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
     def collate_fn(self, batch):

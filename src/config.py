@@ -37,3 +37,5 @@ version = 'version_0'
 ckpt_name = 'epoch=6'
 
 PATH = f'{logs_path}/{version}/checkpoints/{ckpt_name}.ckpt'
+
+DATA_FMT = 'pascal_voc'
