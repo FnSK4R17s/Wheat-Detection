@@ -18,33 +18,30 @@ class LitWheat(pl.LightningModule):
         return self.model(x)
 
     def train_dataloader(self):
-        self.train_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.train_folds),
+        train_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.train_folds),
                                                    batch_size=config.TRAIN_BATCH_SIZE,
                                                    shuffle=True,
                                                    collate_fn=self.collate_fn)
-        return self.train_loader
+        return train_loader
 
     def val_dataloader(self):
-        self.valid_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.valid_folds),
+        valid_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.valid_folds),
                                                    batch_size=config.VAL_BATCH_SIZE,
                                                    shuffle=False,
                                                    collate_fn=self.collate_fn)
 
-        return self.valid_loader
+        return valid_loader
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='max', patience=15)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='max', patience=2)
 
         return [optimizer], [scheduler]
 
     def training_step(self, batch, batch_idx):
         images, targets = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
-        # separate losses
         loss_dict = self.model(images, targets)
-        # print(loss_dict)
-        # total loss
         losses = sum(loss for loss in loss_dict.values())
 
         return {'loss': losses, 'log': loss_dict, 'progress_bar': loss_dict}
@@ -53,27 +50,16 @@ class LitWheat(pl.LightningModule):
         
         images, targets = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
-        # print(targets)
         outputs = self.model(images)
-        # print(outputs)
-        # res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
-
-        # print(res)
-
         scores = self.bboxtoIoU(outputs, targets)
-        # print(scores)
         return {'val_IoU': scores, 'val_avg': np.mean(scores)}
 
     def validation_epoch_end(self, outputs):
         
         metric = []
-
-        # print(outputs)
         for o in outputs:
             metric.append(o['val_avg'])
-        
         metric = np.mean(metric)
-
         tensorboard_logs = {'main_score': metric, 'val_loss': metric}
         return {'main_score': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
@@ -87,10 +73,7 @@ class LitWheat(pl.LightningModule):
             b_gt = gt['boxes'].cpu().detach().numpy()
 
             score = self.run(b_res, b_gt)
-            # print(score.shape, b_res.shape, b_gt.shape)
-            # IoU.append(score)
             mean = np.mean(np.max(score, axis=0))
-            # print(mean)
             IoU.append(mean)
         return IoU
             
