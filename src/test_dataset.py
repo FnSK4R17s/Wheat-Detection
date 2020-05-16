@@ -32,9 +32,6 @@ def visualize(annotations, category_id_to_name):
     plt.imshow(img)
 
 
-
-
-
 data = dataset.WheatDataset(folds=[1,2])
 
 print(len(data))
@@ -49,13 +46,6 @@ print(img.shape)
 print(bboxes.shape)
 
 img = np.transpose(img, (1, 2, 0))
-
-# ax = plt.gca()
-
-# for x,y,w,h in bboxes:
-#     box = Rectangle((x,y),w-x,h-y,linewidth=2,edgecolor='r',facecolor='none', angle=0.0)
-#     ax.add_patch(box)
-
 
 annotations = {'image': img, 'bboxes': bboxes, 'category_id': labels}
 

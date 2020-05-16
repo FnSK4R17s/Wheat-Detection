@@ -8,7 +8,7 @@ def train_iterative(train_folds,  valid_folds):
     model = model_dispenser()
     lit_model = LitWheat(train_folds,  valid_folds, model=model)
 
-    early_stopping = pl.callbacks.EarlyStopping(mode=max, monitor='main_score', patience=50)
+    early_stopping = pl.callbacks.EarlyStopping(mode='max', monitor='main_score', patience=2)
 
     trainer = pl.Trainer(
         gpus=1,
