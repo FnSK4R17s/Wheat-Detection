@@ -1,9 +1,10 @@
 import pytorch_lightning as pl
 import torch
-from dataset import WheatDataset
+from dataset import WheatDataset, WheatTest
 import config
 
 import numpy as np
+import pandas as pd
 
 class LitWheat(pl.LightningModule):
     
@@ -39,7 +40,7 @@ class LitWheat(pl.LightningModule):
         return [optimizer], [scheduler]
 
     def training_step(self, batch, batch_idx):
-        images, targets = batch
+        images, targets, _ = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
         loss_dict = self.model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
@@ -48,7 +49,7 @@ class LitWheat(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         
-        images, targets = batch
+        images, targets, _ = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images)
         scores = self.bboxtoIoU(outputs, targets)
@@ -89,3 +90,53 @@ class LitWheat(pl.LightningModule):
         boxBArea = (x22 - x21 + 1) * (y22 - y21 + 1)
         iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea + 1e-2)
         return iou
+
+    def test_step(self, batch, batch_idx):
+        images, _, img_name = batch
+        
+        results = []
+
+        outputs = self.model(images)
+
+        for i, image in enumerate(images):
+
+            boxes = outputs[i]['boxes'].data.cpu().numpy()
+            scores = outputs[i]['scores'].data.cpu().numpy()
+            
+            boxes = boxes[scores >= config.detection_threshold].astype(np.int32)
+            scores = scores[scores >= config.detection_threshold]
+            image_id = img_name[i]
+            
+            result = {
+                'image_id': image_id,
+                'PredictionString': self.format_prediction_string(boxes, scores)
+            }
+
+        results.append(result)
+
+        return results
+
+    def test_epoch_end(self, outputs):
+
+        test_df = pd.DataFrame(outputs, columns=['image_id', 'PredictionString'])  
+        test_df.head()
+
+        test_df.to_csv(config.SUB_FILE, index=False)
+
+        return {}
+
+    def test_dataloader(self):
+        test_loader = torch.utils.data.DataLoader(WheatTest(test=True),
+                                                   batch_size=config.TEST_BATCH_SIZE,
+                                                   shuffle=False,
+                                                   collate_fn=self.collate_fn)
+
+        return test_loader
+
+
+    def format_prediction_string(self, boxes, scores):
+        pred_strings = []
+        for s, b in zip(scores, boxes.astype(int)):
+            pred_strings.append(f'{s:.4f} {b[0]} {b[1]} {b[2] - b[0]} {b[3] - b[1]}')
+
+        return " ".join(pred_strings)

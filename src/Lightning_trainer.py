@@ -3,6 +3,9 @@ from Lightning_module import LitWheat
 from model_dispatcher import model_dispenser
 from pytorch_lightning.loggers import TensorBoardLogger
 
+import torch
+import config
+
 
 def train_iterative(train_folds,  valid_folds):
     model = model_dispenser()
@@ -24,6 +27,10 @@ def train_iterative(train_folds,  valid_folds):
     )
 
     trainer.fit(lit_model)
+
+    torch.save(lit_model.model.state_dict(), config.MODEL_PATH)
+
+    trainer.test()
 
 if __name__ == "__main__":
     train_iterative([0, 1, 2, 3],[4])

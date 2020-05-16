@@ -30,12 +30,19 @@ TRAIN_FOLDS = f'{OUTPUT}/train_folds.csv'
 
 TRAIN_BATCH_SIZE = 4
 VAL_BATCH_SIZE = 4
+TEST_BATCH_SIZE = 4
 
 
 logs_path = 'lightning_logs'
 version = 'version_0'
-ckpt_name = 'epoch=6'
+ckpt_name = 'epoch=4'
 
 PATH = f'{logs_path}/{version}/checkpoints/{ckpt_name}.ckpt'
 
 DATA_FMT = 'pascal_voc'
+
+MODEL_PATH = 'saved_models/'
+
+detection_threshold = 0.5
+
+SUB_FILE = f'{OUTPUT}/submission.csv'
