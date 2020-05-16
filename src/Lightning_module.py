@@ -15,6 +15,8 @@ class LitWheat(pl.LightningModule):
         self.train_folds = train_folds
         self.valid_folds = valid_folds
 
+        self.test_df = pd.DataFrame(columns=['image_id', 'PredictionString'])
+
     def forward(self, x, *args, **kwargs):
         return self.model(x)
 
@@ -112,17 +114,21 @@ class LitWheat(pl.LightningModule):
                 'PredictionString': self.format_prediction_string(boxes, scores)
             }
 
-        results.append(result)
+            results.append(result)
+
+        df = pd.DataFrame(results, columns=['image_id', 'PredictionString'])
+
+        # print(df.head())
+
+        self.test_df = self.test_df.append(df, ignore_index=True)
 
         return results
 
     def test_epoch_end(self, outputs):
 
-        test_df = pd.DataFrame(outputs, columns=['image_id', 'PredictionString'])  
-        test_df.head()
-
-        test_df.to_csv(config.SUB_FILE, index=False)
-
+        # print(outputs)
+        # print(self.test_df.head())
+        # self.test_df.to_csv(config.SUB_FILE, index=False)
         return {}
 
     def test_dataloader(self):

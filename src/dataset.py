@@ -102,7 +102,9 @@ class WheatDataset:
 class WheatTest:
     def __init__(self, test=True):
         
-        self.image_ids = os.listdir(config.TEST_PATH)
+        self.image_ids = []
+        for file in os.listdir(config.TEST_PATH):
+            self.image_ids.append(os.path.splitext(file)[0])
 
         self.aug = A.Compose([
             A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),

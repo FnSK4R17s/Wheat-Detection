@@ -34,14 +34,14 @@ TEST_BATCH_SIZE = 4
 
 
 logs_path = 'lightning_logs'
-version = 'version_0'
-ckpt_name = 'epoch=4'
+version = 'version_1'
+ckpt_name = 'epoch=8'
 
 PATH = f'{logs_path}/{version}/checkpoints/{ckpt_name}.ckpt'
 
 DATA_FMT = 'pascal_voc'
 
-MODEL_PATH = 'saved_models/'
+MODEL_PATH = 'saved_models/model.pth'
 
 detection_threshold = 0.5
 
