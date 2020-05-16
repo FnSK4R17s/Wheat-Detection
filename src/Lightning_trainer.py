@@ -8,7 +8,8 @@ def train_iterative(train_folds,  valid_folds):
     model = model_dispenser()
     lit_model = LitWheat(train_folds,  valid_folds, model=model)
 
-    early_stopping = pl.callbacks.EarlyStopping(mode='max', monitor='main_score', patience=2)
+    early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=3)
+    # model_checkpoint = pl.callbacks.ModelCheckpoint(mode='max', monitor='main_score', verbose=True)
 
     trainer = pl.Trainer(
         gpus=1,
@@ -18,7 +19,7 @@ def train_iterative(train_folds,  valid_folds):
         gradient_clip_val=0.5,
         debug=False,
         lr=0.0001,
-        metric='main_score',
+        metric='val_loss',
         seed=666
     )
 

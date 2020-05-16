@@ -34,7 +34,7 @@ class LitWheat(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='max', patience=2)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=2)
 
         return [optimizer], [scheduler]
 
@@ -52,16 +52,16 @@ class LitWheat(pl.LightningModule):
         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images)
         scores = self.bboxtoIoU(outputs, targets)
-        return {'val_IoU': scores, 'val_avg': np.mean(scores)}
+        return {'val_IoU': scores}
 
     def validation_epoch_end(self, outputs):
         
         metric = []
         for o in outputs:
-            metric.append(o['val_avg'])
+            metric.append(np.mean(o['val_IoU']))
         metric = np.mean(metric)
-        tensorboard_logs = {'main_score': metric, 'val_loss': metric}
-        return {'main_score': metric, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
+        tensorboard_logs = {'val_loss': -metric, 'val_acc': metric}
+        return {'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
     def collate_fn(self, batch):
         return tuple(zip(*batch))
