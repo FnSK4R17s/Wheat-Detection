@@ -42,7 +42,7 @@ class WheatDataset:
                 ]),
                 A.OneOf([
                     A.JpegCompression(),
-                    A.Blur(),
+                    A.Blur(blur_limit=4),
                     A.NoOp()
                 ]),
                 A.Flip(p=0.5),
