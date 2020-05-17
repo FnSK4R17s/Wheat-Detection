@@ -40,8 +40,9 @@ class LitWheat(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=4)
+        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10)
 
-        return [optimizer], [scheduler]
+        return [optimizer], [scheduler, warm_restart]
 
     def training_step(self, batch, batch_idx):
         images, targets, _ = batch
