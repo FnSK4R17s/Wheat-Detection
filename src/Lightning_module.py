@@ -49,6 +49,8 @@ class LitWheat(pl.LightningModule):
         loss_dict = self.model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
 
+        loss_dict['net_loss'] = losses
+
         return {'loss': losses, 'log': loss_dict, 'progress_bar': loss_dict}
 
     def validation_step(self, batch, batch_idx):
