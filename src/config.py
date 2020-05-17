@@ -2,13 +2,15 @@ CROP_SIZE = 1024
 CHANNELS = 3
 CLASSES = 2
 
+DEVICE = 'cuda'
+
 EPOCHS = 7
 
 LR = 0.001
 
 INPUT_SHAPE = (CHANNELS, CROP_SIZE, CROP_SIZE)
 
-MODEL_NAME = 'fasterRCNNresnet34'
+MODEL_NAME = 'fasterRCNNresnet50'
 
 
 min_area = 0.0
@@ -41,7 +43,9 @@ PATH = f'{logs_path}/{version}/checkpoints/{ckpt_name}.ckpt'
 
 DATA_FMT = 'pascal_voc'
 
-MODEL_PATH = 'saved_models/model.pth'
+MODEL_PATH = f'saved_models/{MODEL_NAME}'
+# MODEL_PATH = f'saved_models'
+MODEL_SAVE = f'{MODEL_PATH}/model.pth'
 
 detection_threshold = 0.5
 

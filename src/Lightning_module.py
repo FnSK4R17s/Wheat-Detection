@@ -6,6 +6,8 @@ import config
 import numpy as np
 import pandas as pd
 
+from utils import collate_fn, bboxtoIoU, format_prediction_string
+
 class LitWheat(pl.LightningModule):
     
     def __init__(self, train_folds,  valid_folds, model = None):
@@ -24,20 +26,20 @@ class LitWheat(pl.LightningModule):
         train_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.train_folds),
                                                    batch_size=config.TRAIN_BATCH_SIZE,
                                                    shuffle=True,
-                                                   collate_fn=self.collate_fn)
+                                                   collate_fn=collate_fn)
         return train_loader
 
     def val_dataloader(self):
         valid_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.valid_folds),
                                                    batch_size=config.VAL_BATCH_SIZE,
                                                    shuffle=False,
-                                                   collate_fn=self.collate_fn)
+                                                   collate_fn=collate_fn)
 
         return valid_loader
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=2)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=4)
 
         return [optimizer], [scheduler]
 
@@ -54,7 +56,7 @@ class LitWheat(pl.LightningModule):
         images, targets, _ = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images)
-        scores = self.bboxtoIoU(outputs, targets)
+        scores = bboxtoIoU(outputs, targets)
         return {'val_IoU': scores}
 
     def validation_epoch_end(self, outputs):
@@ -65,33 +67,6 @@ class LitWheat(pl.LightningModule):
         metric = np.mean(metric)
         tensorboard_logs = {'val_loss': -metric, 'val_acc': metric}
         return {'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
-
-    def collate_fn(self, batch):
-        return tuple(zip(*batch))
-
-    def bboxtoIoU(self, results, targets):
-        IoU = []
-        for i, (res, gt) in enumerate(zip(results, targets)):
-            b_res = res['boxes'].cpu().detach().numpy()
-            b_gt = gt['boxes'].cpu().detach().numpy()
-
-            score = self.run(b_res, b_gt)
-            mean = np.mean(np.max(score, axis=0))
-            IoU.append(mean)
-        return IoU
-            
-    def run(self, bboxes1, bboxes2):
-        x11, y11, x12, y12 = np.split(bboxes1, 4, axis=1)
-        x21, y21, x22, y22 = np.split(bboxes2, 4, axis=1)
-        xA = np.maximum(x11, np.transpose(x21))
-        yA = np.maximum(y11, np.transpose(y21))
-        xB = np.minimum(x12, np.transpose(x22))
-        yB = np.minimum(y12, np.transpose(y22))
-        interArea = np.maximum((xB - xA + 1), 0) * np.maximum((yB - yA + 1), 0)
-        boxAArea = (x12 - x11 + 1) * (y12 - y11 + 1)
-        boxBArea = (x22 - x21 + 1) * (y22 - y21 + 1)
-        iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea + 1e-2)
-        return iou
 
     def test_step(self, batch, batch_idx):
         images, _, img_name = batch
@@ -111,7 +86,7 @@ class LitWheat(pl.LightningModule):
             
             result = {
                 'image_id': image_id,
-                'PredictionString': self.format_prediction_string(boxes, scores)
+                'PredictionString': format_prediction_string(boxes, scores)
             }
 
             results.append(result)
@@ -132,17 +107,9 @@ class LitWheat(pl.LightningModule):
         return {}
 
     def test_dataloader(self):
-        test_loader = torch.utils.data.DataLoader(WheatTest(test=True),
+        test_loader = torch.utils.data.DataLoader(WheatTest(),
                                                    batch_size=config.TEST_BATCH_SIZE,
                                                    shuffle=False,
-                                                   collate_fn=self.collate_fn)
+                                                   collate_fn=collate_fn)
 
         return test_loader
-
-
-    def format_prediction_string(self, boxes, scores):
-        pred_strings = []
-        for s, b in zip(scores, boxes.astype(int)):
-            pred_strings.append(f'{s:.4f} {b[0]} {b[1]} {b[2] - b[0]} {b[3] - b[1]}')
-
-        return " ".join(pred_strings)

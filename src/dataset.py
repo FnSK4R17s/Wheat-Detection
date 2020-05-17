@@ -21,8 +21,7 @@ class WheatDataset:
         if len(folds) == 1:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
-                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
-                ToTensorV2(p=1.0)
+                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
             ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']})
         else:
             self.aug = A.Compose([
@@ -46,8 +45,8 @@ class WheatDataset:
                     A.Blur(),
                     A.NoOp()
                 ]),
-                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
-                ToTensorV2(p=1.0)
+                A.Flip(p=0.5),
+                A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
             ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
     def __len__(self):
@@ -93,14 +92,18 @@ class WheatDataset:
 
         image = sample['image']
 
+        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
+
         target['boxes'] = torch.as_tensor(sample['bboxes'], dtype=torch.float32)
+        
+        image = torch.as_tensor(image, dtype=torch.float32)
 
         return image, target, img_name
 
 
 
 class WheatTest:
-    def __init__(self, test=True):
+    def __init__(self):
         
         self.image_ids = []
         for file in os.listdir(config.TEST_PATH):
@@ -108,8 +111,7 @@ class WheatTest:
 
         self.aug = A.Compose([
             A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
-            A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
-            ToTensorV2(p=1.0)
+            A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
         ], p=1.0)
     
     def __len__(self):
@@ -133,6 +135,10 @@ class WheatTest:
         sample = self.aug(**sample)
 
         image = sample['image']
+
+        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
+        
+        image = torch.as_tensor(image, dtype=torch.float32)
 
         return image, target, img_name
 

@@ -5,6 +5,8 @@ import torchvision
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
+import torch.nn as nn
+
 import config
 
 def model_dispenser():
@@ -23,7 +25,9 @@ def model_dispenser():
 
 def FasterRCNN_mobileNet():
 
-    backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+    net = torchvision.models.mobilenet_v2(pretrained=True)
+    modules = list(net.children())[:-2]
+    backbone = nn.Sequential(*modules)
     backbone.out_channels = 1280
 
     anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
@@ -38,4 +42,10 @@ def FasterRCNN_mobileNet():
                     rpn_anchor_generator=anchor_generator,
                     box_roi_pool=roi_pooler)
 
+
     return model
+
+MODEL_DISPATCHER = {
+    'FasterRCNN_mobileNet' : FasterRCNN_mobileNet(),
+    'fasterRCNNresnet50' : model_dispenser()
+}

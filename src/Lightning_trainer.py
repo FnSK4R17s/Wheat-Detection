@@ -1,17 +1,19 @@
 import pytorch_lightning as pl
 from Lightning_module import LitWheat
-from model_dispatcher import model_dispenser
+from model_dispatcher import MODEL_DISPATCHER
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import torch
 import config
 
+import os
+
 
 def train_iterative(train_folds,  valid_folds):
-    model = model_dispenser()
-    lit_model = LitWheat(train_folds,  valid_folds, model=model)
+    model = MODEL_DISPATCHER[config.MODEL_NAME]
+    lit_model = LitWheat(train_folds=train_folds,  valid_folds=valid_folds, model=model)
 
-    early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=3)
+    early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=10)
     # model_checkpoint = pl.callbacks.ModelCheckpoint(mode='max', monitor='main_score', verbose=True)
 
     trainer = pl.Trainer(
@@ -28,9 +30,20 @@ def train_iterative(train_folds,  valid_folds):
 
     trainer.fit(lit_model)
 
-    torch.save(lit_model.model.state_dict(), config.MODEL_PATH)
+    torch.save(lit_model.model.state_dict(), config.MODEL_SAVE)
 
     trainer.test()
 
+    lit_model.test_df.to_csv(config.SUB_FILE, index=False)
+    print(lit_model.test_df.head())
+
+def makepaths(paths):
+    for path in paths:
+        if not os.path.exists(path):
+            os.makedirs(path)
+
 if __name__ == "__main__":
+
+    makepaths([config.MODEL_PATH, config.PATH])
+
     train_iterative([0, 1, 2, 3],[4])
