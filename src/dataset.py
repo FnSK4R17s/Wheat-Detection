@@ -46,7 +46,7 @@ class WheatDataset:
                     A.Blur(blur_limit=4),
                     A.NoOp()
                 ]),
-                A.Flip(p=0.5),
+                A.Flip(),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
             ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 

@@ -18,14 +18,15 @@ def train_iterative(train_folds,  valid_folds):
 
     trainer = pl.Trainer(
         gpus=1,
-        accumulate_grad_batches=64,
+        accumulate_grad_batches=32,
         profiler=True,
         early_stop_callback=early_stopping,
+        checkpoint_callback=model_checkpoint,
         gradient_clip_val=0.5,
         debug=False,
         lr=0.0001,
         metric='val_loss',
-        seed=666
+        auto_lr_find=True
     )
 
     trainer.fit(lit_model)

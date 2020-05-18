@@ -10,9 +10,9 @@ from utils import collate_fn, bboxtoIoU, format_prediction_string
 
 class LitWheat(pl.LightningModule):
     
-    def __init__(self, train_folds,  valid_folds, model = None):
+    def __init__(self, hparams, train_folds,  valid_folds, model = None):
         super(LitWheat, self).__init__()
-        # self.hparams = hparams
+        self.hparams = hparams
         self.model = model
         self.train_folds = train_folds
         self.valid_folds = valid_folds
@@ -38,9 +38,9 @@ class LitWheat(pl.LightningModule):
         return valid_loader
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.001)
+        optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()),lr=self.hparams.lr,weight_decay=0.001)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=4)
-        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10)
+        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=674)
 
         return [optimizer], [scheduler, warm_restart]
 
