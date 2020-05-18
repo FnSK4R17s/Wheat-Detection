@@ -26,7 +26,8 @@ class WheatDataset:
         else:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
-                A.OneOf([A.RandomBrightnessContrast(brightness_limit=0.5, contrast_limit=0.4),
+                A.OneOf([
+                    A.RandomBrightnessContrast(brightness_limit=0.5, contrast_limit=0.4),
                     A.RandomGamma(gamma_limit=(50, 150)),
                     A.NoOp()
                 ]),

@@ -14,7 +14,7 @@ def train_iterative(train_folds,  valid_folds):
     lit_model = LitWheat(train_folds=train_folds,  valid_folds=valid_folds, model=model)
 
     early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=10)
-    # model_checkpoint = pl.callbacks.ModelCheckpoint(mode='max', monitor='main_score', verbose=True)
+    model_checkpoint = pl.callbacks.ModelCheckpoint(filepath= config.FILESAVE, mode='min', monitor='val_loss', verbose=True)
 
     trainer = pl.Trainer(
         gpus=1,
@@ -44,6 +44,6 @@ def makepaths(paths):
 
 if __name__ == "__main__":
 
-    makepaths([config.MODEL_PATH, config.PATH])
+    makepaths([config.MODEL_PATH, config.PATH, config.FILEPATH])
 
     train_iterative([0, 1, 2, 3],[4])

@@ -47,6 +47,10 @@ MODEL_PATH = f'saved_models/{MODEL_NAME}'
 # MODEL_PATH = f'saved_models'
 MODEL_SAVE = f'{MODEL_PATH}/model.pth'
 
+FILEPATH = 'saved/'
+
+FILESAVE = f'{FILEPATH}/model.pth'
+
 detection_threshold = 0.5
 
 SUB_FILE = f'{OUTPUT}/submission.csv'
