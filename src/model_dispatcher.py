@@ -117,7 +117,7 @@ def FasterRCNN_resnet101():
 
     # backbone = torchvision.models.resnet101(pretrained=True).features
 
-    test_backbone(backbone)
+    # test_backbone(backbone)
 
     backbone.out_channels = 256
 
@@ -147,7 +147,7 @@ def vgg():
     backbone.out_channels = 512
     anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                         aspect_ratios=((0.5, 1.0, 2.0),))
-    roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=[0],
+    roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
                                                     output_size=7,
                                                     sampling_ratio=2)
 

@@ -10,7 +10,7 @@ LR = 0.0001
 
 INPUT_SHAPE = (CHANNELS, CROP_SIZE, CROP_SIZE)
 
-MODEL_NAME = 'fasterRCNNVGG'
+MODEL_NAME = 'fasterRCNNresnet50'
 
 
 min_area = 0.0
@@ -30,9 +30,9 @@ MODEL_STD = (0.229, 0.224, 0.225)
 
 TRAIN_FOLDS = f'{OUTPUT}/train_folds.csv'
 
-TRAIN_BATCH_SIZE = 1
-VAL_BATCH_SIZE = 1
-TEST_BATCH_SIZE = 1
+TRAIN_BATCH_SIZE = 4
+VAL_BATCH_SIZE = 4
+TEST_BATCH_SIZE = 4
 
 
 logs_path = 'lightning_logs'

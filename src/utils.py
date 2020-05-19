@@ -10,10 +10,7 @@ def bboxtoIoU(results, targets):
         b_gt = gt['boxes'].cpu().detach().numpy()
 
         score = run(b_res, b_gt)
-        try:
-            mean = np.mean(np.max(score, axis=0))
-        except:
-            mean = 0.0
+        mean = np.mean(np.max(score, axis=0))
         IoU.append(mean)
     return IoU
         
