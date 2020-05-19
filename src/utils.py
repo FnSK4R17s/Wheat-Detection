@@ -10,7 +10,10 @@ def bboxtoIoU(results, targets):
         b_gt = gt['boxes'].cpu().detach().numpy()
 
         score = run(b_res, b_gt)
-        mean = np.mean(np.max(score, axis=0))
+        try:
+            mean = np.mean(np.max(score, axis=0))
+        except:
+            mean = 0.0
         IoU.append(mean)
     return IoU
         
@@ -25,6 +28,7 @@ def run(bboxes1, bboxes2):
     boxAArea = (x12 - x11 + 1) * (y12 - y11 + 1)
     boxBArea = (x22 - x21 + 1) * (y22 - y21 + 1)
     iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea + 1e-2)
+
     return iou
 
 def format_prediction_string(boxes, scores):

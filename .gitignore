@@ -139,3 +139,5 @@ lightning_logs/
 logs/
 saved_models/
 saved/
+
+*.ckpt

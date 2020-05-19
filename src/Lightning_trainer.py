@@ -8,23 +8,28 @@ import config
 
 import os
 
+from argparse import ArgumentParser
+
 
 def train_iterative(train_folds,  valid_folds):
+
+    parser = ArgumentParser()
+    parser.add_argument('--lr', type=int, default=config.LR)
+    hparams = parser.parse_args()
+
     model = MODEL_DISPATCHER[config.MODEL_NAME]
-    lit_model = LitWheat(train_folds=train_folds,  valid_folds=valid_folds, model=model)
+    lit_model = LitWheat(hparams, train_folds=train_folds,  valid_folds=valid_folds, model=model)
 
     early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=10)
-    model_checkpoint = pl.callbacks.ModelCheckpoint(filepath= config.FILESAVE, mode='min', monitor='val_loss', verbose=True)
+    # model_checkpoint = pl.callbacks.ModelCheckpoint(filepath= config.FILESAVE, mode='min', monitor='val_loss', verbose=True)
 
     trainer = pl.Trainer(
         gpus=1,
         accumulate_grad_batches=32,
         profiler=True,
         early_stop_callback=early_stopping,
-        checkpoint_callback=model_checkpoint,
         gradient_clip_val=0.5,
         debug=False,
-        lr=0.0001,
         metric='val_loss',
         auto_lr_find=True
     )

@@ -68,6 +68,7 @@ class LitWheat(pl.LightningModule):
         for o in outputs:
             metric.append(np.mean(o['val_IoU']))
         metric = np.mean(metric)
+        metric = torch.tensor(metric, dtype=torch.float)
         tensorboard_logs = {'val_loss': -metric, 'val_acc': metric}
         return {'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
