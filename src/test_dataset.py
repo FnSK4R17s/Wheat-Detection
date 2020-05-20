@@ -32,6 +32,28 @@ def visualize(annotations, category_id_to_name):
     plt.imshow(img)
 
 
+def denorm(image):
+
+    R, G, B = image[:, :, 0], image[:, :, 1], image[:, :, 2]
+
+    mR, mG, mB = config.MODEL_MEAN
+
+    sR, sG, sB = config.MODEL_STD
+
+    R = (R+mR)*sR
+    G = (G+mG)*sG
+    B = (B+mB)*sB
+
+    img = np.array([])
+
+    img = np.dstack((R, G))
+    img = np.dstack((img, B))
+
+    print(img.shape)
+
+    return img
+    
+
 data = dataset.WheatDataset(folds=[1,2])
 
 print(len(data))
@@ -50,10 +72,11 @@ print(bboxes.shape)
 
 img = np.transpose(img, (1, 2, 0))
 
+img = denorm(img)
+
 annotations = {'image': img, 'bboxes': bboxes, 'category_id': labels}
 
 category_id_to_name = {1: 'wheat'}
-
 
 visualize(annotations, category_id_to_name)
 

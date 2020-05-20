@@ -27,7 +27,7 @@ class WheatDataset:
             self.aug = A.Compose([
                 A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
                 A.OneOf([
-                    A.RandomBrightnessContrast(brightness_limit=0.5, contrast_limit=0.4),
+                    A.RandomBrightnessContrast(brightness_limit=0.4, contrast_limit=0.4),
                     A.RandomGamma(gamma_limit=(50, 150)),
                     A.NoOp()
                 ]),
@@ -38,7 +38,7 @@ class WheatDataset:
                 ]),
                 A.OneOf([
                     A.ChannelShuffle(),
-                    A.CLAHE(),
+                    A.CLAHE(clip_limit=4),
                     A.NoOp()
                 ]),
                 A.OneOf([
@@ -49,6 +49,12 @@ class WheatDataset:
                 A.Flip(),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
             ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
+
+        # self.aug = A.Compose([
+        #     A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
+        #     A.CLAHE(clip_limit=4),
+        #     A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
+        # ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
     def __len__(self):
         return len(self.image_ids)

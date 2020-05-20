@@ -41,7 +41,7 @@ def inference():
 
     # lit_model = LitWheat.load_from_checkpoint(checkpoint_path=config.PATH, model=model, train_folds=train_folds,  valid_folds=valid_folds)
 
-    # # torch.save(lit_model.model.state_dict(), config.MODEL_SAVE)
+    # torch.save(lit_model.model.state_dict(), config.MODEL_SAVE)
 
     # trainer = pl.Trainer(gpus=1)
     # trainer.test(lit_model)
@@ -49,7 +49,8 @@ def inference():
     # lit_model.test_df.to_csv(config.SUB_FILE, index=False)
     # print(lit_model.test_df.head())
 
-    model.load_state_dict(torch.load(config.MODEL_SAVE))    
+    model.load_state_dict(torch.load(config.MODEL_SAVE))
+     
 
     model = model.to(config.DEVICE)
 

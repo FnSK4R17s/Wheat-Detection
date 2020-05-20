@@ -40,7 +40,7 @@ class LitWheat(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()),lr=self.hparams.lr,weight_decay=0.001)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=4)
-        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=674)
+        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=21)
 
         return [optimizer], [scheduler, warm_restart]
 

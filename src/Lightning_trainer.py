@@ -18,6 +18,11 @@ def train_iterative(train_folds,  valid_folds):
     hparams = parser.parse_args()
 
     model = MODEL_DISPATCHER[config.MODEL_NAME]
+
+    model.load_state_dict(torch.load(config.MODEL_SAVE))
+
+    model = freeze(model, 4)
+
     lit_model = LitWheat(hparams, train_folds=train_folds,  valid_folds=valid_folds, model=model)
 
     early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=10)
@@ -30,8 +35,7 @@ def train_iterative(train_folds,  valid_folds):
         early_stop_callback=early_stopping,
         gradient_clip_val=0.5,
         debug=False,
-        metric='val_loss',
-        auto_lr_find=True
+        metric='val_loss'
     )
 
     trainer.fit(lit_model)
@@ -47,6 +51,19 @@ def makepaths(paths):
     for path in paths:
         if not os.path.exists(path):
             os.makedirs(path)
+
+def freeze(model, level):
+
+    for layer in model.backbone.parameters():
+        layer.requires_grad = True
+
+    for layer in model.backbone.fpn.parameters():
+        layer.requires_grad = True
+
+    for layer in model.backbone.body.layer4.parameters():
+        layer.requires_grad = True
+
+    return model
 
 if __name__ == "__main__":
 

@@ -55,6 +55,8 @@ def FasterRCNN_mobileNet():
                     rpn_anchor_generator=anchor_generator,
                     box_roi_pool=roi_pooler)
 
+    return model
+
 
 
 def FasterRCNN_resnext50_32x4d():
@@ -87,9 +89,10 @@ def FasterRCNN_resnext50_32x4d():
 def FasterRCNN_resnext101_32x8d():
     
     net = torchvision.models.resnext101_32x8d(pretrained=True)
-    modules = list(net.children())[:-2]
+    net.fc = nn.Identity()
+    modules = list(net.children())[:]
     backbone = nn.Sequential(*modules)
-
+    
     # test_backbone(backbone)
 
     backbone.out_channels = 2048

@@ -36,7 +36,7 @@ TEST_BATCH_SIZE = 4
 
 
 logs_path = 'lightning_logs'
-version = 'version_1'
+version = 'version_8'
 ckpt_name = 'epoch=8'
 
 PATH = f'{logs_path}/{version}/checkpoints/{ckpt_name}.ckpt'
