@@ -8,6 +8,9 @@ import cv2
 
 import config
 
+import pandas as pd
+import utils
+
 BOX_COLOR = (255, 0, 0)
 TEXT_COLOR = (255, 255, 255)
 
@@ -54,19 +57,36 @@ def denorm(image):
     return img
     
 
-data = dataset.WheatDataset(folds=[1,2])
+# data = dataset.WheatDataset(folds=[0,1,2])
+train_df = pd.read_csv(config.TRAIN_FOLDS)
+folds=[0,1,2]
+train_df = train_df[train_df.kfold.isin(folds)].reset_index(drop=True)
+
+data = dataset.AwgDataset(train_df, config.TRAIN_PATH)
 
 print(len(data))
 
 idx = 122
 
 image, target, img_name = data[idx]
+# img, res, img_name = data[idx]
+
+# print(res)
+
+# labels = []
+# bboxes = []
+
+# for l, a, b, c, d in res:
+#     labels.append(1)
+#     bboxes.append([a,b,c,d])
+
 
 
 img = image.numpy()
 bboxes = target['boxes'].numpy()
 labels = target['labels'].numpy()
 
+print(img)
 print(img.shape)
 print(bboxes.shape)
 
@@ -79,6 +99,8 @@ annotations = {'image': img, 'bboxes': bboxes, 'category_id': labels}
 category_id_to_name = {1: 'wheat'}
 
 visualize(annotations, category_id_to_name)
+
+print(img_name)
 
 plt.show()
 

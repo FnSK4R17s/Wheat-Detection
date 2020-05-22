@@ -33,11 +33,11 @@ def format_prediction_string(boxes, scores):
 
 def inference():
 
-    # train_folds = [0, 1, 2, 3]
-    # valid_folds = [4]
+    train_folds = [0, 1, 2, 3]
+    valid_folds = [4]
 
     model = MODEL_DISPATCHER[config.MODEL_NAME]
-    # model.load_state_dict(torch.load(config.MODEL_PATH))
+    # model.load_state_dict(torch.load(config.MODEL_SAVE))
 
     # lit_model = LitWheat.load_from_checkpoint(checkpoint_path=config.PATH, model=model, train_folds=train_folds,  valid_folds=valid_folds)
 

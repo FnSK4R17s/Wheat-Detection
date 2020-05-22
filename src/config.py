@@ -36,8 +36,8 @@ TEST_BATCH_SIZE = 4
 
 
 logs_path = 'lightning_logs'
-version = 'version_8'
-ckpt_name = 'epoch=8'
+version = 'version_13'
+ckpt_name = 'epoch=4'
 
 PATH = f'{logs_path}/{version}/checkpoints/{ckpt_name}.ckpt'
 
@@ -54,3 +54,6 @@ FILESAVE = f'{FILEPATH}/model.pth'
 detection_threshold = 0.5
 
 SUB_FILE = f'{OUTPUT}/submission.csv'
+
+annFile = 'COCO/ann_real.json'
+resFile = 'COCO/ann_fake.json'

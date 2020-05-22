@@ -1,12 +1,12 @@
 import pytorch_lightning as pl
 import torch
-from dataset import WheatDataset, WheatTest
+from dataset import WheatDataset, WheatTest, AwgDataset
 import config
 
 import numpy as np
 import pandas as pd
 
-from utils import collate_fn, bboxtoIoU, format_prediction_string
+from utils import collate_fn, bboxtoIoU, format_prediction_string, bboxtoIP
 
 class LitWheat(pl.LightningModule):
     
@@ -23,7 +23,18 @@ class LitWheat(pl.LightningModule):
         return self.model(x)
 
     def train_dataloader(self):
-        train_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.train_folds),
+
+        if self.hparams.aws:
+
+            train_df = pd.read_csv(config.TRAIN_FOLDS)
+            train_df = train_df[train_df.kfold.isin(self.train_folds)].reset_index(drop=True)
+
+            data = AwgDataset(train_df, config.TRAIN_PATH)
+        else:
+            data = WheatDataset(folds=self.train_folds)
+
+
+        train_loader = torch.utils.data.DataLoader(dataset=data,
                                                    batch_size=config.TRAIN_BATCH_SIZE,
                                                    shuffle=True,
                                                    collate_fn=collate_fn)
@@ -36,6 +47,7 @@ class LitWheat(pl.LightningModule):
                                                    collate_fn=collate_fn)
 
         return valid_loader
+
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()),lr=self.hparams.lr,weight_decay=0.001)
@@ -59,14 +71,14 @@ class LitWheat(pl.LightningModule):
         images, targets, _ = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images)
-        scores = bboxtoIoU(outputs, targets)
-        return {'val_IoU': scores}
+        scores = bboxtoIP(outputs, targets)
+        return {'val_AP': scores}
 
     def validation_epoch_end(self, outputs):
         
         metric = []
         for o in outputs:
-            metric.append(np.mean(o['val_IoU']))
+            metric.append(np.mean(o['val_AP']))
         metric = np.mean(metric)
         metric = torch.tensor(metric, dtype=torch.float)
         tensorboard_logs = {'val_loss': -metric, 'val_acc': metric}

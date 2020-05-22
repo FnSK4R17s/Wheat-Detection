@@ -1,7 +1,37 @@
 import numpy as np
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
+import iou_jit
+
 
 def collate_fn(batch):
     return tuple(zip(*batch))
+
+
+def bboxtoIP(results, targets):
+
+    iou_thresholds = [x for x in np.arange(0.5, 0.76, 0.05)]
+    validation_image_precision = []
+    for i, (res, gt) in enumerate(zip(results, targets)):
+        b_res = res['boxes'].cpu().detach().numpy()
+        s_res = res['scores'].cpu().detach().numpy()
+
+        preds_sorted_idx = np.argsort(s_res)[::-1]
+        b_res = b_res[preds_sorted_idx]
+
+        b_gt = gt['boxes'].cpu().detach().numpy()
+
+        image_precision = iou_jit.calculate_image_precision(b_res,
+                                                            b_gt,
+                                                            thresholds=iou_thresholds,
+                                                            form='pascal_vac')
+
+        validation_image_precision.append(image_precision)
+        
+    return validation_image_precision
+
+
 
 def bboxtoIoU(results, targets):
     IoU = []
@@ -34,3 +64,17 @@ def format_prediction_string(boxes, scores):
         pred_strings.append(f'{s:.4f} {b[0]} {b[1]} {b[2] - b[0]} {b[3] - b[1]}')
 
     return " ".join(pred_strings)
+
+def get_train_transform():
+    return A.Compose([
+        ToTensorV2(p=1.0)
+    ], bbox_params={'format': 'pascal_voc', 'label_fields': ['labels']})
+
+
+
+def get_valid_transform():
+    return A.Compose([
+        ToTensorV2(p=1.0)
+    ], bbox_params={'format': 'pascal_voc', 'label_fields': ['labels']})
+
+

@@ -15,6 +15,7 @@ def train_iterative(train_folds,  valid_folds):
 
     parser = ArgumentParser()
     parser.add_argument('--lr', type=int, default=config.LR)
+    parser.add_argument('--aws', type=int, default=True)
     hparams = parser.parse_args()
 
     model = MODEL_DISPATCHER[config.MODEL_NAME]

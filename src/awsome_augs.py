@@ -9,7 +9,7 @@ def load_image(self, index):
     # loads 1 image from dataset, returns img, original hw, resized hw
     image_id = self.image_ids[index]
     imgpath = config.TRAIN_PATH
-    img = cv2.imread(f'{imgpath}/{image_id}.jpg', cv2.IMREAD_COLOR)
+    img = cv2.imread(f'{config.TRAIN_PATH}/{image_id}.jpg', cv2.IMREAD_COLOR)
     
     assert img is not None, 'Image Not Found ' + imgpath
     h0, w0 = img.shape[:2]  # orig hw
