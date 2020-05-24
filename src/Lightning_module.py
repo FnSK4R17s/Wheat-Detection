@@ -35,14 +35,14 @@ class LitWheat(pl.LightningModule):
 
 
         train_loader = torch.utils.data.DataLoader(dataset=data,
-                                                   batch_size=config.TRAIN_BATCH_SIZE,
+                                                   batch_size=self.hparams.batch_size,
                                                    shuffle=True,
                                                    collate_fn=collate_fn)
         return train_loader
 
     def val_dataloader(self):
         valid_loader = torch.utils.data.DataLoader(WheatDataset(folds=self.valid_folds),
-                                                   batch_size=config.VAL_BATCH_SIZE,
+                                                   batch_size=self.hparams.batch_size,
                                                    shuffle=False,
                                                    collate_fn=collate_fn)
 
@@ -131,7 +131,7 @@ class LitWheat(pl.LightningModule):
 
     def test_dataloader(self):
         test_loader = torch.utils.data.DataLoader(WheatTest(),
-                                                   batch_size=config.TEST_BATCH_SIZE,
+                                                   batch_size=self.hparams.batch_size,
                                                    shuffle=False,
                                                    collate_fn=collate_fn)
 

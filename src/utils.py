@@ -25,7 +25,7 @@ def bboxtoIP(results, targets):
         image_precision = iou_jit.calculate_image_precision(b_res,
                                                             b_gt,
                                                             thresholds=iou_thresholds,
-                                                            form='pascal_vac')
+                                                            form='pascal_voc')
 
         validation_image_precision.append(image_precision)
         

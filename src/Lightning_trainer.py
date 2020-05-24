@@ -15,6 +15,7 @@ def train_iterative(train_folds,  valid_folds):
 
     parser = ArgumentParser()
     parser.add_argument('--lr', type=int, default=config.LR)
+    parser.add_argument('--batch_size', type=int, default=config.BATCH_SIZE)
     parser.add_argument('--aws', type=int, default=True)
     hparams = parser.parse_args()
 
@@ -27,16 +28,19 @@ def train_iterative(train_folds,  valid_folds):
     lit_model = LitWheat(hparams, train_folds=train_folds,  valid_folds=valid_folds, model=model)
 
     early_stopping = pl.callbacks.EarlyStopping(mode='min', monitor='val_loss', patience=50)
-    model_checkpoint = pl.callbacks.ModelCheckpoint(filepath= config.MODEL_SAVE, save_weights_only=True, mode='max', monitor='val_IoU', verbose=True)
+    model_checkpoint = pl.callbacks.ModelCheckpoint(filepath= config.MODEL_SAVE, save_weights_only=True, mode='max', monitor='val_IoU', verbose=False)
 
     trainer = pl.Trainer(
         gpus=1,
         # accumulate_grad_batches=32,
         profiler=True,
+        early_stop_callback=early_stopping,
         checkpoint_callback=model_checkpoint,
         gradient_clip_val=0.5,
         debug=False,
-        metric='val_loss', 
+        metric='val_loss',
+        auto_lr_find=True,
+        auto_scale_batch_size='binsearch'
     )
 
     trainer.fit(lit_model)
