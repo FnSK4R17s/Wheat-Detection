@@ -50,9 +50,9 @@ class LitWheat(pl.LightningModule):
 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()),lr=self.hparams.lr,weight_decay=0.001)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=4)
-        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=21)
+        optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),lr=self.hparams.lr)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=7)
+        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=674)
 
         return [optimizer], [scheduler, warm_restart]
 
@@ -71,17 +71,24 @@ class LitWheat(pl.LightningModule):
         images, targets, _ = batch
         targets = [{k: v for k, v in t.items()} for t in targets]
         outputs = self.model(images)
-        scores = bboxtoIP(outputs, targets)
-        return {'val_AP': scores}
+        AP = bboxtoIP(outputs, targets)
+        scores = bboxtoIoU(outputs, targets)
+        return {'val_AP': AP, 'val_IoU': scores}
 
     def validation_epoch_end(self, outputs):
         
         metric = []
+        IoU = []
         for o in outputs:
             metric.append(np.mean(o['val_AP']))
+            IoU.append(np.mean(o['val_IoU']))
+        
         metric = np.mean(metric)
         metric = torch.tensor(metric, dtype=torch.float)
-        tensorboard_logs = {'val_loss': -metric, 'val_acc': metric}
+        IoU = np.mean(IoU)
+        IoU = torch.tensor(IoU, dtype=torch.float)
+
+        tensorboard_logs = {'val_loss': -IoU, 'val_acc': IoU, 'val_IoU': IoU, 'val_P': metric}
         return {'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
     def test_step(self, batch, batch_idx):

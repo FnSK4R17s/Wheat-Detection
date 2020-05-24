@@ -51,7 +51,7 @@ class WheatDataset:
                     A.Blur(blur_limit=4),
                     A.NoOp()
                 ]),
-                A.Flip(),
+                A.Cutout(num_holes=8, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
                 A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True)
             ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
@@ -188,6 +188,33 @@ class AwgDataset(Dataset):
 
         self.aug = A.Compose([
             A.Resize(config.CROP_SIZE, config.CROP_SIZE, always_apply=True),
+            A.OneOf([
+                A.RandomBrightnessContrast(brightness_limit=0.4, contrast_limit=0.4),
+                A.RandomGamma(gamma_limit=(50, 150)),
+                A.NoOp()
+            ]),
+            A.OneOf([
+                A.RGBShift(r_shift_limit=20, b_shift_limit=15, g_shift_limit=15),
+                A.HueSaturationValue(hue_shift_limit=5, sat_shift_limit=5),
+                A.NoOp()
+            ]),
+            A.OneOf([
+                A.ChannelShuffle(),
+                A.CLAHE(clip_limit=4),
+                A.NoOp()
+            ]),
+            A.OneOf([
+                A.JpegCompression(),
+                A.Blur(blur_limit=4),
+                A.NoOp()
+            ]),
+            A.OneOf([
+                A.ToGray(),
+                A.ToSepia(),
+                A.NoOp()
+            ], p=0.2),
+            A.GaussNoise(),
+            A.Cutout(num_holes=8, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
             A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
             ToTensorV2(p=1.0)
         ], p=1.0)
@@ -247,7 +274,10 @@ class AwgDataset(Dataset):
         num_bboxes = len(bboxes)
         iscrowd = torch.zeros((num_bboxes,), dtype=torch.int64)
 
-        area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
+        try:
+            area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
+        except:
+            return __getitem__(self, index)
         area = torch.as_tensor(area, dtype=torch.float32)
 
         bboxes = torch.tensor(bboxes, dtype=torch.float32)
