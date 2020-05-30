@@ -8,12 +8,14 @@ import pandas as pd
 
 from utils import collate_fn, bboxtoIoU, format_prediction_string, bboxtoIP
 
+from model_dispatcher import MODEL_DISPATCHER
+
 class LitWheat(pl.LightningModule):
     
-    def __init__(self, hparams, train_folds,  valid_folds, model = None):
+    def __init__(self, hparams, train_folds,  valid_folds):
         super(LitWheat, self).__init__()
         self.hparams = hparams
-        self.model = model
+        self.model = MODEL_DISPATCHER[self.hparams.model_name]
         self.train_folds = train_folds
         self.valid_folds = valid_folds
 
@@ -52,7 +54,7 @@ class LitWheat(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()),lr=self.hparams.lr)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.9, mode='min', patience=7)
-        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=674)
+        warm_restart = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=int(674/(self.hparams.accumulate)))
 
         return [optimizer], [scheduler, warm_restart]
 
@@ -120,7 +122,7 @@ class LitWheat(pl.LightningModule):
 
         self.test_df = self.test_df.append(df, ignore_index=True)
 
-        return results
+        return {}
 
     def test_epoch_end(self, outputs):
 

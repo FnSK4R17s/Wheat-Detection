@@ -55,3 +55,5 @@ SUB_FILE = f'{OUTPUT}/submission.csv'
 
 annFile = 'COCO/ann_real.json'
 resFile = 'COCO/ann_fake.json'
+
+ACCUMULATE = 32
