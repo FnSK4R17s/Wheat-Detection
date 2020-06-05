@@ -16,6 +16,22 @@ import torch
 import numpy as np
 from PIL import Image
 
+import sys
+sys.path.insert(0, f"{config.INPUT}/efficientdet-pytorch-master")
+
+from effdet import get_efficientdet_config, EfficientDet, DetBenchTrain
+from effdet.efficientdet import HeadNet
+
+def get_net_d5():
+    cfg = get_efficientdet_config('tf_efficientdet_d5')
+    net = EfficientDet(cfg, pretrained_backbone=True)
+    # checkpoint = torch.load('../input/efficientdet/efficientdet_d5-ef44aea8.pth')
+    # net.load_state_dict(checkpoint)
+    cfg.num_classes = 1
+    cfg.image_size = 512
+    net.class_net = HeadNet(cfg, num_outputs=cfg.num_classes, norm_kwargs=dict(eps=.001, momentum=.01))
+    return DetBenchTrain(net, cfg)
+
 
 def model_dispenser():
 
@@ -208,6 +224,7 @@ MODEL_DISPATCHER = {
     'FasterRCNN_resnext101' : FasterRCNN_resnext101_32x8d(),
     'FasterRCNN_resnet101' : FasterRCNN_resnet101(),
     'fasterRCNNresnet50' : model_dispenser(),
-    'fasterRCNNVGG' : vgg()
+    'fasterRCNNVGG' : vgg(),
+    'EffDet5' : get_net_d5()
 }
 
