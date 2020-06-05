@@ -13,11 +13,11 @@ from argparse import ArgumentParser
 def train_iterative(train_folds,  valid_folds):
 
     parser = ArgumentParser()
-    parser.add_argument('--lr', type=int, default=config.LR)
+    parser.add_argument('--lr', type=float, default=config.LR)
     parser.add_argument('--batch_size', type=int, default=config.BATCH_SIZE)
     parser.add_argument('--model_name', type=str, default=config.MODEL_NAME)
     parser.add_argument('--accumulate', type=int, default=config.ACCUMULATE)
-    parser.add_argument('--aws', type=int, default=True)
+    parser.add_argument('--aws', type=bool, default=True)
     hparams = parser.parse_args()
 
 
