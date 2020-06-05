@@ -1,4 +1,4 @@
-CROP_SIZE = 1024
+CROP_SIZE = 512
 CHANNELS = 3
 CLASSES = 2
 
@@ -30,9 +30,7 @@ MODEL_STD = (0.229, 0.224, 0.225)
 
 TRAIN_FOLDS = f'{OUTPUT}/train_folds.csv'
 
-TRAIN_BATCH_SIZE = 4
-VAL_BATCH_SIZE = 4
-TEST_BATCH_SIZE = 4
+BATCH_SIZE = 4
 
 
 logs_path = 'lightning_logs'
@@ -57,3 +55,5 @@ SUB_FILE = f'{OUTPUT}/submission.csv'
 
 annFile = 'COCO/ann_real.json'
 resFile = 'COCO/ann_fake.json'
+
+ACCUMULATE = 32

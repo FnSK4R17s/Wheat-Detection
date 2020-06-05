@@ -217,7 +217,7 @@ class AwgDataset(Dataset):
             A.Cutout(num_holes=8, max_h_size=64, max_w_size=64, fill_value=0, p=0.5),
             A.Normalize(config.MODEL_MEAN, config.MODEL_STD, always_apply=True),
             ToTensorV2(p=1.0)
-        ], p=1.0)
+        ], bbox_params={'format':config.DATA_FMT, 'min_area': 1, 'min_visibility': 0.5, 'label_fields': ['labels']}, p=1.0)
 
     def __getitem__(self, index: int):
 
@@ -277,10 +277,9 @@ class AwgDataset(Dataset):
         try:
             area = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
         except:
-            return __getitem__(self, index)
+            return self.__getitem__(index)
         area = torch.as_tensor(area, dtype=torch.float32)
 
-        bboxes = torch.tensor(bboxes, dtype=torch.float32)
         labels = torch.ones((num_bboxes,), dtype=torch.int64)
 
         target = {}
@@ -289,8 +288,19 @@ class AwgDataset(Dataset):
         target['image_id'] = torch.tensor([index])
         target['area'] = area
         target['iscrowd'] = iscrowd
-        
-        image = self.aug(image=img)['image']
+
+
+        sample = {
+        'image': img,
+        'bboxes': target['boxes'],
+        'labels': labels
+        }
+
+        sample = self.aug(**sample)
+
+        image = sample['image']
+
+        target['boxes'] = torch.as_tensor(sample['bboxes'], dtype=torch.float32)
 
         return image, target, 'awg'
 

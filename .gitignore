@@ -141,3 +141,5 @@ saved_models/
 saved/
 
 *.ckpt
+
+kaggle_logs/
