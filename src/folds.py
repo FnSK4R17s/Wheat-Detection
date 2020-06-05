@@ -11,6 +11,9 @@ import re
 
 from tqdm import tqdm
 
+if not os.path.exists(config.OUTPUT):
+    os.makedirs(config.OUTPUT)
+
 
 df = pd.read_csv(config.TRAIN_CSV)
 df.loc[:,'kfold'] = -1
@@ -34,7 +37,7 @@ df['w'] = df['w'].astype(np.float)
 df['h'] = df['h'].astype(np.float)
 
 
-files = glob.glob(f'{config.TRAIN_PATH}\*.jpg')
+files = glob.glob(f"{config.TRAIN_PATH}/*.jpg")
 
 # print(files)
 
@@ -44,7 +47,7 @@ files = list(map(format, files))
 
 files = pd.Series(files)
 
-# print(files)
+print(files)
 
 names = df.image_id
 
